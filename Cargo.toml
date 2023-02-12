@@ -6,3 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+turnip_gfx_disasm = { path = "../turnip_gfx_disasm" }
+amd_dx_gsa = { path = "../amd_dx_gsa" }
+nom = "7.1.1"
+object = "0.29.0"
+clap = { version = "3.2.21", features = ["derive"] }
