@@ -79,11 +79,11 @@ pub fn resolve_amdil_text_dependencies(program: AMDILProgram) {
     for dependent in dependency_resolver.dependents() {
         match &dependent.0 .0.vector_name {
             HLSLVectorName::ShaderOutput { .. } => {
-                println!("{} {} depends on", dependent.0 .0.kind, DWrap(dependent.0));
+                println!("{} depends on", DWrap(dependent.0));
                 let mut inputs: Vec<_> = dependent
                     .1
                     .into_iter()
-                    .map(|x| format!("{} {}", x.kind, DWrap(&x.data)))
+                    .map(|x| format!("{}", DWrap(&x.data)))
                     .collect();
                 inputs.sort();
                 for input in inputs {
