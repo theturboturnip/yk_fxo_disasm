@@ -4,7 +4,8 @@ use turnip_gfx_disasm::{
     },
     abstract_machine::display::DisplayVec,
     abstract_machine::{ScalarAction, ScalarOutcome},
-    amdil_text::{vm::AMDILNameRef, AMDILDecodeError, AMDILDecoder, AMDILProgram},
+    amdil_text::{AMDILDecodeError, AMDILDecoder, AMDILProgram},
+    hlsl::{display::DWrap, HLSLVectorName},
     rdna2::{vm::RDNA2DataRef, RDNA2DecodeError, RDNA2Decoder, RDNA2Program},
     Decoder, Program,
 };
@@ -35,11 +36,9 @@ pub fn disassemble_amdil_text(amdil_text: &[u8]) -> Result<AMDILProgram, AMDILDe
 }
 
 pub fn resolve_amdil_text_dependencies(program: AMDILProgram) {
-    let mut resolver = ScalarDependencies::new();
+    // Perform a variable pass first
     let mut variable_resolver = VariableAbstractMachine::new();
-    // println!("{:?}", action);
     for action in program.actions() {
-        resolver.accum_action(action);
         variable_resolver.accum_action(action);
         for outcome in action.outcomes() {
             match outcome {
@@ -70,12 +69,22 @@ pub fn resolve_amdil_text_dependencies(program: AMDILProgram) {
         }
     }
 
-    for dependent in resolver.dependents() {
-        match (&dependent.0.vm_name_ref, dependent.0.comp) {
-            (AMDILNameRef::NamedOutputRegister { .. }, _) => {
-                println!("{} depends on", dependent.0);
-                let mut inputs: Vec<_> =
-                    dependent.1.into_iter().map(|x| format!("{}", x)).collect();
+    // Then do dependency resolution - hopefully by that point the types will be done
+    let mut dependency_resolver = ScalarDependencies::new();
+    for action in variable_resolver.actions() {
+        println!("{}", action);
+        dependency_resolver.accum_action(&action);
+    }
+
+    for dependent in dependency_resolver.dependents() {
+        match &dependent.0 .0.vector_name {
+            HLSLVectorName::ShaderOutput { .. } => {
+                println!("{} {} depends on", dependent.0 .0.kind, DWrap(dependent.0));
+                let mut inputs: Vec<_> = dependent
+                    .1
+                    .into_iter()
+                    .map(|x| format!("{} {}", x.kind, DWrap(&x.data)))
+                    .collect();
                 inputs.sort();
                 for input in inputs {
                     println!("\t{input}")
