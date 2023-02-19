@@ -2,7 +2,7 @@ use turnip_gfx_disasm::{
     abstract_machine::analysis::{
         dependency::ScalarDependencies, variable::VariableAbstractMachine,
     },
-    abstract_machine::{display::DebugVec, Action, LegacyOutcome},
+    abstract_machine::{display::DebugVec, Action, Outcome},
     amdil_text::{AMDILDecodeError, AMDILDecoder, AMDILProgram},
     hlsl::{display::DWrap, HLSLVectorName},
     rdna2::{vm::RDNA2DataRef, RDNA2DecodeError, RDNA2Decoder, RDNA2Program},
@@ -41,7 +41,7 @@ pub fn resolve_amdil_text_dependencies(program: AMDILProgram) {
         variable_resolver.accum_action(action);
         for outcome in action.outcomes() {
             match outcome {
-                LegacyOutcome::Dependency { output, inputs } => {
+                Outcome::Assign { output, inputs, .. } => {
                     println!(
                         "\t{:?} <- {}",
                         output,
@@ -51,11 +51,9 @@ pub fn resolve_amdil_text_dependencies(program: AMDILProgram) {
                         }
                     )
                 }
-                LegacyOutcome::Declaration { name, value } => match value {
-                    Some(v) => println!("\t{:?} <- {:?}", name, v),
-                    None => println!("\t{:?} exists", name),
-                },
-                LegacyOutcome::EarlyOut { inputs } => {
+                Outcome::Declare(name) => println!("\t{:?} exists", name),
+
+                Outcome::EarlyOut { inputs } => {
                     println!(
                         "EarlyOut[{}]",
                         DebugVec::Prefix {
