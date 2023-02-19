@@ -8,7 +8,6 @@ use amd_dx_gsa::Atidxx64;
 use clap::Parser;
 use compile::compile_dxbc_to_rdna2;
 use disasm::{disassemble_rdna2, print_output_depedencies};
-use turnip_gfx_disasm::{ScalarAction, ScalarOutcome};
 use yk::parse_gsfx;
 
 use crate::{

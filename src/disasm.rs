@@ -2,8 +2,7 @@ use turnip_gfx_disasm::{
     abstract_machine::analysis::{
         dependency::ScalarDependencies, variable::VariableAbstractMachine,
     },
-    abstract_machine::display::DisplayVec,
-    abstract_machine::{ScalarAction, ScalarOutcome},
+    abstract_machine::{display::DebugVec, Action, LegacyOutcome},
     amdil_text::{AMDILDecodeError, AMDILDecoder, AMDILProgram},
     hlsl::{display::DWrap, HLSLVectorName},
     rdna2::{vm::RDNA2DataRef, RDNA2DecodeError, RDNA2Decoder, RDNA2Program},
@@ -22,7 +21,7 @@ pub fn print_output_depedencies(program: &RDNA2Program) {
 
     for dependent in resolver.dependents() {
         match dependent.0 {
-            RDNA2DataRef::Output { .. } => {
+            (RDNA2DataRef::Output { .. }, _) => {
                 println!("{:?} depends on {:?}", dependent.0, dependent.1)
             }
             _ => {}
@@ -42,24 +41,24 @@ pub fn resolve_amdil_text_dependencies(program: AMDILProgram) {
         variable_resolver.accum_action(action);
         for outcome in action.outcomes() {
             match outcome {
-                ScalarOutcome::Dependency { output, inputs } => {
+                LegacyOutcome::Dependency { output, inputs } => {
                     println!(
-                        "\t{} <- {}",
+                        "\t{:?} <- {}",
                         output,
-                        DisplayVec::Prefix {
+                        DebugVec::Prefix {
                             vec: &inputs,
                             prefix: "\n\t\t"
                         }
                     )
                 }
-                ScalarOutcome::Declaration { name, value } => match value {
-                    Some(v) => println!("\t{} <- {}", name, v),
-                    None => println!("\t{} exists", name),
+                LegacyOutcome::Declaration { name, value } => match value {
+                    Some(v) => println!("\t{:?} <- {:?}", name, v),
+                    None => println!("\t{:?} exists", name),
                 },
-                ScalarOutcome::EarlyOut { inputs } => {
+                LegacyOutcome::EarlyOut { inputs } => {
                     println!(
                         "EarlyOut[{}]",
-                        DisplayVec::Prefix {
+                        DebugVec::Prefix {
                             vec: &inputs,
                             prefix: "\n\t\t"
                         }
@@ -83,7 +82,7 @@ pub fn resolve_amdil_text_dependencies(program: AMDILProgram) {
                 let mut inputs: Vec<_> = dependent
                     .1
                     .into_iter()
-                    .map(|x| format!("{}", DWrap(&x.data)))
+                    .map(|x| format!("{}", DWrap(x)))
                     .collect();
                 inputs.sort();
                 for input in inputs {
