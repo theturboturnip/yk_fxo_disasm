@@ -1,31 +1,34 @@
 use turnip_gfx_disasm::{
-    abstract_machine::analysis::{
-        dependency::ScalarDependencies, variable::VariableAbstractMachine,
-    },
+    abstract_machine::{analysis::{
+        dependency::ScalarDependencies,
+    }, VMName},
     abstract_machine::{display::DebugVec, Action, Outcome},
     amdil_text::{AMDILDecodeError, AMDILDecoder, AMDILProgram},
-    hlsl::{display::DWrap, HLSLVectorName},
-    rdna2::{vm::RDNA2DataRef, RDNA2DecodeError, RDNA2Decoder, RDNA2Program},
-    Decoder, Program,
+    hlsl::{display::DWrap, HLSLSingleVectorName},
+    // rdna2::{vm::RDNA2DataRef, RDNA2DecodeError, RDNA2Decoder, RDNA2Program},
+    Decoder, Program, AbstractVM,
 };
 
-pub fn disassemble_rdna2(rdna2: &[u8]) -> Result<RDNA2Program, RDNA2DecodeError> {
-    RDNA2Decoder::new().decode(rdna2)
-}
+// pub fn disassemble_rdna2(rdna2: &[u8]) -> Result<RDNA2Program, RDNA2DecodeError> {
+//     RDNA2Decoder::new().decode(rdna2)
+// }
 
-pub fn print_output_depedencies(program: &RDNA2Program) {
+pub fn print_output_depedencies<T: AbstractVM>(program: &impl Program<T>) {
     let mut resolver = ScalarDependencies::new();
-    for action in program {
-        resolver.accum_action(action.as_ref());
+    for action in program.actions() {
+        resolver.accum_action(action);
     }
 
     for dependent in resolver.dependents() {
-        match dependent.0 {
-            (RDNA2DataRef::Output { .. }, _) => {
-                println!("{:?} depends on {:?}", dependent.0, dependent.1)
-            }
-            _ => {}
+        // TODO: Filter on is_output
+        if !dependent.0.is_pure_input() {
+            println!("{:?} depends on {:?}", dependent.0, dependent.1)
         }
+        // match dependent.0 {
+        //     (RDNA2DataRef::Output { .. }, _) => {
+        //     }
+        //     _ => {}
+        // }
     }
 }
 
@@ -34,7 +37,8 @@ pub fn disassemble_amdil_text(amdil_text: &[u8]) -> Result<AMDILProgram, AMDILDe
     AMDILDecoder::new().decode(amdil_text)
 }
 
-pub fn resolve_amdil_text_dependencies(program: AMDILProgram) {
+/*
+pub fn resolve_variable_text_dependencies<T: AbstractVM>(program: &impl Program<T>) {
     // Perform a variable pass first
     let mut variable_resolver = VariableAbstractMachine::new();
     for action in program.actions() {
@@ -75,7 +79,7 @@ pub fn resolve_amdil_text_dependencies(program: AMDILProgram) {
 
     for dependent in dependency_resolver.dependents() {
         match &dependent.0 .0.vector_name {
-            HLSLVectorName::ShaderOutput { .. } => {
+            HLSLSingleVectorName::ShaderOutput { .. } => {
                 println!("{} depends on", DWrap(dependent.0));
                 let mut inputs: Vec<_> = dependent
                     .1
@@ -91,3 +95,4 @@ pub fn resolve_amdil_text_dependencies(program: AMDILProgram) {
         }
     }
 }
+*/

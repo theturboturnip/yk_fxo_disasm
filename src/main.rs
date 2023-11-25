@@ -7,12 +7,12 @@ mod yk;
 use amd_dx_gsa::Atidxx64;
 use clap::Parser;
 use compile::compile_dxbc_to_rdna2;
-use disasm::{disassemble_rdna2, print_output_depedencies};
+use disasm::{print_output_depedencies};
 use yk::parse_gsfx;
 
 use crate::{
     compile::compile_dxbc_to_amdil_text,
-    disasm::{disassemble_amdil_text, resolve_amdil_text_dependencies},
+    disasm::{disassemble_amdil_text},
 };
 
 /// Simple program to greet a person
@@ -37,29 +37,29 @@ fn main() {
 
     let (_, (gsvs, gsps)) = parse_gsfx(&fxo).expect("couldn't parse fxo file");
 
-    if false {
+    // if false {
+    //     println!("Vertex Program");
+    //     let vert_program = compile_dxbc_to_rdna2(&dll, gsvs.dxbc, disassemble_rdna2)
+    //         .expect("couldn't compile vertex shader")
+    //         .expect("couldn't disassemble vertex shader");
+    //     print_output_depedencies(&vert_program);
+
+    //     println!("\n\nFragment Program");
+    //     let frag_program = compile_dxbc_to_rdna2(&dll, gsps.dxbc, disassemble_rdna2)
+    //         .expect("couldn't compile frag shader")
+    //         .expect("couldn't disassemble frag shader");
+    //     print_output_depedencies(&frag_program);
+    // } else {
         println!("Vertex Program");
-        let vert_program = compile_dxbc_to_rdna2(&dll, gsvs.dxbc, disassemble_rdna2)
+        let vert_program = compile_dxbc_to_amdil_text(&dll, gsvs.dxbc, disassemble_amdil_text)
             .expect("couldn't compile vertex shader")
             .expect("couldn't disassemble vertex shader");
         print_output_depedencies(&vert_program);
 
         println!("\n\nFragment Program");
-        let frag_program = compile_dxbc_to_rdna2(&dll, gsps.dxbc, disassemble_rdna2)
-            .expect("couldn't compile frag shader")
-            .expect("couldn't disassemble frag shader");
-        print_output_depedencies(&frag_program);
-    } else {
-        println!("Vertex Program");
-        let vert_program = compile_dxbc_to_amdil_text(&dll, gsvs.dxbc, disassemble_amdil_text)
-            .expect("couldn't compile vertex shader")
-            .expect("couldn't disassemble vertex shader");
-        resolve_amdil_text_dependencies(vert_program);
-
-        println!("\n\nFragment Program");
         let frag_program = compile_dxbc_to_amdil_text(&dll, gsps.dxbc, disassemble_amdil_text)
             .expect("couldn't compile frag shader")
             .expect("couldn't disassemble frag shader");
-        resolve_amdil_text_dependencies(frag_program);
-    }
+        print_output_depedencies(&frag_program);
+    // }
 }
