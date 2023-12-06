@@ -19,9 +19,13 @@ pub fn print_output_depedencies<T: AbstractVM>(program: &impl Program<T>) {
         resolver.accum_action(action);
     }
 
+    println!("Inputs and Outputs:");
+    for r in program.io_declarations() {
+        println!("\t{:?}", r);
+    }
+
     for dependent in resolver.dependents() {
-        // TODO: Filter on is_output
-        if !dependent.0.is_pure_input() {
+        if dependent.0.is_output() {
             println!("{:?} depends on {:?}", dependent.0, dependent.1)
         }
         // match dependent.0 {
