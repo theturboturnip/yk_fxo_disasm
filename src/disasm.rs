@@ -4,7 +4,7 @@ use turnip_gfx_disasm::{
     abstract_machine::{analysis::dependency::ScalarDependencies, VMName, display::DisplayVec},
     amdil_text::{AMDILDecodeError, AMDILDecoder, AMDILProgram},
     // rdna2::{vm::RDNA2DataRef, RDNA2DecodeError, RDNA2Decoder, RDNA2Program},
-    Decoder, Program, AbstractVM, hlsl::{compat::{HLSLCompatibleAbstractVM, program_to_hlsl}, display::DWrap, kinds::HLSLKindBitmask}
+    Decoder, Program, hlsl::{compat::{HLSLCompatibleAbstractVM, program_to_hlsl}, display::DWrap, kinds::HLSLKindBitmask}
 };
 
 // pub fn disassemble_rdna2(rdna2: &[u8]) -> Result<RDNA2Program, RDNA2DecodeError> {

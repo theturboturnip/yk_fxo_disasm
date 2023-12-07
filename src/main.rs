@@ -6,13 +6,12 @@ mod yk;
 
 use amd_dx_gsa::Atidxx64;
 use clap::Parser;
-use compile::compile_dxbc_to_rdna2;
-use disasm::{print_output_depedencies};
+use disasm::print_output_depedencies;
 use yk::parse_gsfx;
 
 use crate::{
     compile::compile_dxbc_to_amdil_text,
-    disasm::{disassemble_amdil_text},
+    disasm::disassemble_amdil_text,
 };
 
 /// Simple program to greet a person

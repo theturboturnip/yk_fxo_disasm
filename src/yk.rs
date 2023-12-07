@@ -35,10 +35,10 @@ pub struct GSPS<'a> {
 pub fn parse_gsfx<'a>(
     overall: &'a [u8],
 ) -> IResult<&'a [u8], (GSVS<'a>, GSPS<'a>), YkGfxError<&'a [u8]>> {
-    let (input, (_magic, _unk1, _unk2, overall_len)) =
+    let (input, (_magic, _unk1, _unk2, _overall_len)) =
         tuple((tag(b"GSFX"), le_u32, le_u32, le_u32))(overall)?;
 
-    let (input, (name_checksum, name)) = tuple((le_u16, take(30_usize)))(input)?;
+    let (input, (_name_checksum, _name)) = tuple((le_u16, take(30_usize)))(input)?;
 
     let (input, (vs_start, vs_length)) = tuple((le_u32, le_u32))(input)?;
     let (input, (fs_start, fs_length)) = tuple((le_u32, le_u32))(input)?;
@@ -57,7 +57,7 @@ pub fn parse_gsfx<'a>(
 }
 
 pub fn parse_gsvs<'a>(overall: &'a [u8]) -> IResult<&'a [u8], GSVS<'a>, YkGfxError<&'a [u8]>> {
-    let (input, (_magic, _unk1, _unk2, dxbc_len)) =
+    let (input, (_magic, _unk1, _unk2, _dxbc_len)) =
         tuple((tag(b"GSVS"), le_u32, le_u32, le_u32))(overall)?;
 
     let (input, (_unk3, _unk4, dxbc_offset, dxbc_len)) =
@@ -75,7 +75,7 @@ pub fn parse_gsvs<'a>(overall: &'a [u8]) -> IResult<&'a [u8], GSVS<'a>, YkGfxErr
 }
 
 pub fn parse_gsps<'a>(overall: &'a [u8]) -> IResult<&'a [u8], GSPS<'a>, YkGfxError<&'a [u8]>> {
-    let (input, (_magic, _unk1, _unk2, dxbc_len)) =
+    let (input, (_magic, _unk1, _unk2, _dxbc_len)) =
         tuple((tag(b"GSPS"), le_u32, le_u32, le_u32))(overall)?;
 
     let (input, (_unk3, _unk4, dxbc_offset, dxbc_len)) =
