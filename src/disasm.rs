@@ -1,32 +1,38 @@
+use std::collections::HashSet;
+
 use turnip_gfx_disasm::{
-    abstract_machine::{analysis::{
-        dependency::ScalarDependencies,
-    }, VMName},
-    abstract_machine::{display::DebugVec, Action, Outcome},
+    abstract_machine::{analysis::dependency::ScalarDependencies, VMName, display::DisplayVec},
     amdil_text::{AMDILDecodeError, AMDILDecoder, AMDILProgram},
-    hlsl::{display::DWrap, HLSLSingleVectorName},
     // rdna2::{vm::RDNA2DataRef, RDNA2DecodeError, RDNA2Decoder, RDNA2Program},
-    Decoder, Program, AbstractVM,
+    Decoder, Program, AbstractVM, hlsl::{compat::{HLSLCompatibleAbstractVM, program_to_hlsl}, display::DWrap, kinds::HLSLKindBitmask}
 };
 
 // pub fn disassemble_rdna2(rdna2: &[u8]) -> Result<RDNA2Program, RDNA2DecodeError> {
 //     RDNA2Decoder::new().decode(rdna2)
 // }
 
-pub fn print_output_depedencies<T: AbstractVM>(program: &impl Program<T>) {
+pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Program<T>) {
+    let program_compat = program_to_hlsl::<T, _>(program);
+
     let mut resolver = ScalarDependencies::new();
-    for action in program.actions() {
-        resolver.accum_action(action);
+    for action in program_compat.actions() {
+        resolver.accum_action(action, &HashSet::new());
     }
 
     println!("Inputs and Outputs:");
-    for r in program.io_declarations() {
+    for r in program_compat.io_declarations() {
         println!("\t{:?}", r);
+    }
+
+    for dependent in resolver.discard_dependencies() {
+        println!("discard depends on {}", DWrap((dependent, HLSLKindBitmask::all().into())))
     }
 
     for dependent in resolver.dependents() {
         if dependent.0.is_output() {
-            println!("{:?} depends on {:?}", dependent.0, dependent.1)
+            // TODO use this for HLSL-esque ones
+            println!("{} depends on {}", DWrap((dependent.0, HLSLKindBitmask::all().into())), DisplayVec::Sep { vec: &(dependent.1.iter().map(|s| DWrap((s, HLSLKindBitmask::all().into()))).collect()), sep: "," })
+            // println!("{:?} depends on {:?}", dependent.0, dependent.1)
         }
         // match dependent.0 {
         //     (RDNA2DataRef::Output { .. }, _) => {
