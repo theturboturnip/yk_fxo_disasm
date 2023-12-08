@@ -1,10 +1,10 @@
-use std::collections::HashSet;
+use std::{collections::{HashSet, HashMap}, thread::current, panic::PanicInfo};
 
 use turnip_gfx_disasm::{
-    abstract_machine::{analysis::dependency::ScalarDependencies, VMName, display::DisplayVec},
+    abstract_machine::{analysis::dependency::ScalarDependencies, VMName, display::DisplayVec, vector::VectorOf},
     amdil_text::{AMDILDecodeError, AMDILDecoder, AMDILProgram},
     // rdna2::{vm::RDNA2DataRef, RDNA2DecodeError, RDNA2Decoder, RDNA2Program},
-    Decoder, Program, hlsl::{compat::{HLSLCompatibleAbstractVM, program_to_hlsl}, display::DWrap, kinds::HLSLKindBitmask}
+    Decoder, Program, hlsl::{compat::{HLSLCompatibleAbstractVM, program_to_hlsl}, display::DWrap, kinds::{HLSLKindBitmask, HLSLKind}, HLSLScalar, HLSLVector}
 };
 
 // pub fn disassemble_rdna2(rdna2: &[u8]) -> Result<RDNA2Program, RDNA2DecodeError> {
@@ -28,17 +28,55 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
         println!("discard depends on {}", DWrap((dependent, HLSLKindBitmask::all().into())))
     }
 
-    for dependent in resolver.dependents() {
-        if dependent.0.is_output() {
-            // TODO use this for HLSL-esque ones
-            println!("{} depends on {}", DWrap((dependent.0, HLSLKindBitmask::all().into())), DisplayVec::Sep { vec: &(dependent.1.iter().map(|s| DWrap((s, HLSLKindBitmask::all().into()))).collect()), sep: "," })
-            // println!("{:?} depends on {:?}", dependent.0, dependent.1)
+    let mut out_deps: Vec<_> = resolver.dependents().into_iter().filter_map(|(out, deps)| {
+        if out.is_output() {
+            let mut v = deps.iter().collect::<Vec<&HLSLScalar>>();
+            v.sort();
+            let mut lits = vec![];
+            let mut vecs = vec![];
+            let mut current_vec = None;
+
+            for s in v{
+                match s {
+                    HLSLScalar::Component(reg, _) => {
+                        match &mut current_vec {
+                            None => {
+                                current_vec = Some((reg, vec![s.clone()]))
+                            }
+                            Some((other_reg, other_scalars)) if reg != *other_reg => {
+                                vecs.push((
+                                    HLSLVector::new(&other_scalars).unwrap(),
+                                    other_reg.toplevel_kind()
+                                ));
+                                current_vec = Some((reg, vec![s.clone()]))
+                            }
+                            Some((_this_reg, sibling_scalars)) => {
+                                sibling_scalars.push(s.clone())
+                            }
+                        }
+                    },
+                    HLSLScalar::Literal(_) => lits.push(s),
+                }
+            }
+
+            if let Some((reg, scalars)) = current_vec {
+                vecs.push((HLSLVector::new(&scalars).unwrap(), reg.toplevel_kind()))
+            }
+            Some(
+                (out, lits, vecs)
+            )
+        } else {
+            None
         }
-        // match dependent.0 {
-        //     (RDNA2DataRef::Output { .. }, _) => {
-        //     }
-        //     _ => {}
-        // }
+    }).collect();
+    out_deps.sort_by(|(out1, ..), (out2, ..)| out1.partial_cmp(out2).unwrap());
+
+    for (out, lits, vecs) in out_deps {
+        println!("{} depends on {}; {}", 
+            DWrap((out, HLSLKindBitmask::all().into())),
+            DisplayVec::Sep { vec: &(vecs.iter().map(|v| DWrap(v)).collect()), sep: ", " },
+            DisplayVec::Sep { vec: &(lits.into_iter().map(|l| DWrap((l, HLSLKindBitmask::all().into()))).collect()), sep: ", "}
+        )
     }
 }
 
