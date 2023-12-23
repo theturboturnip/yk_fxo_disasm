@@ -4,7 +4,7 @@ use turnip_gfx_disasm::{
     abstract_machine::{analysis::dependency::ScalarDependencies, VMName, display::DisplayVec, vector::VectorOf},
     amdil_text::{AMDILDecodeError, AMDILDecoder, AMDILProgram},
     // rdna2::{vm::RDNA2DataRef, RDNA2DecodeError, RDNA2Decoder, RDNA2Program},
-    Decoder, Program, hlsl::{compat::{HLSLCompatibleAbstractVM, program_to_hlsl}, display::DWrap, kinds::{HLSLKindBitmask, HLSLKind}, HLSLScalar, HLSLVector}
+    Decoder, Program, hlsl::{compat::{HLSLCompatibleAbstractVM, program_to_hlsl}, display::DWrap, kinds::{HLSLKindBitmask, HLSLKind}, HLSLScalar, HLSLVector, vm::HLSLAbstractVM}
 };
 
 // pub fn disassemble_rdna2(rdna2: &[u8]) -> Result<RDNA2Program, RDNA2DecodeError> {
@@ -14,7 +14,7 @@ use turnip_gfx_disasm::{
 pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Program<T>) {
     let program_compat = program_to_hlsl::<T, _>(program);
 
-    let mut resolver = ScalarDependencies::new();
+    let mut resolver = ScalarDependencies::<HLSLAbstractVM>::new();
     for action in program_compat.actions() {
         resolver.accum_action(action, &HashSet::new());
     }
