@@ -1,7 +1,7 @@
 use std::{collections::{HashSet, HashMap}, thread::current, panic::PanicInfo};
 
 use turnip_gfx_disasm::{
-    abstract_machine::{analysis::dependency::ScalarDependencies, VMName, display::DisplayVec, vector::VectorOf},
+    abstract_machine::{analysis::{dependency::ScalarDependencies, variable::disassemble}, VMName, display::DisplayVec, vector::VectorOf},
     amdil_text::{AMDILDecodeError, AMDILDecoder, AMDILProgram},
     // rdna2::{vm::RDNA2DataRef, RDNA2DecodeError, RDNA2Decoder, RDNA2Program},
     Decoder, Program, hlsl::{compat::{HLSLCompatibleAbstractVM, program_to_hlsl}, display::DWrap, kinds::{HLSLKindBitmask, HLSLKind}, HLSLScalar, HLSLVector, vm::HLSLAbstractVM}
@@ -77,6 +77,12 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
             DisplayVec::Sep { vec: &(vecs.iter().map(|v| DWrap(v)).collect()), sep: ", " },
             DisplayVec::Sep { vec: &(lits.into_iter().map(|l| DWrap((l, HLSLKindBitmask::all().into()))).collect()), sep: ", "}
         )
+    }
+
+    println!("PROGRAM TEXT BEGIN");
+    let program_hlsl_text = disassemble(&program_compat);
+    for a in program_hlsl_text {
+        println!("{}", a);
     }
 }
 
