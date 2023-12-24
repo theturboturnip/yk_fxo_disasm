@@ -12,7 +12,7 @@ use turnip_gfx_disasm::{
 // }
 
 pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Program<T>) {
-    let program_compat = program_to_hlsl::<T, _>(program);
+    let program_compat = disassemble(&program_to_hlsl::<T, _>(program));
 
     let mut resolver = ScalarDependencies::<HLSLAbstractVM>::new();
     for action in program_compat.actions() {
@@ -25,28 +25,29 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
     }
 
     for dependent in resolver.discard_dependencies() {
-        println!("discard depends on {}", DWrap((dependent, HLSLKindBitmask::all().into())))
+        println!("discard depends on {}", DWrap(dependent))
     }
 
     let mut out_deps: Vec<_> = resolver.dependents().into_iter().filter_map(|(out, deps)| {
         if out.is_output() {
-            let mut v = deps.iter().collect::<Vec<&HLSLScalar>>();
+            let mut v = deps.iter().collect::<Vec<_>>();
             v.sort();
             let mut lits = vec![];
             let mut vecs = vec![];
             let mut current_vec = None;
 
-            for s in v{
+            for s in v {
                 match s {
-                    HLSLScalar::Component(reg, _) => {
+                    (HLSLScalar::Component(reg, _), _) => {
                         match &mut current_vec {
                             None => {
                                 current_vec = Some((reg, vec![s.clone()]))
                             }
                             Some((other_reg, other_scalars)) if reg != *other_reg => {
+                                let kind = other_scalars[0].1;
                                 vecs.push((
-                                    HLSLVector::new(&other_scalars).unwrap(),
-                                    other_reg.toplevel_kind()
+                                    HLSLVector::new(&(other_scalars.iter().map(|(x, _)| x.clone()).collect::<Vec<_>>())).unwrap(),
+                                    kind
                                 ));
                                 current_vec = Some((reg, vec![s.clone()]))
                             }
@@ -55,12 +56,12 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
                             }
                         }
                     },
-                    HLSLScalar::Literal(_) => lits.push(s),
+                    (HLSLScalar::Literal(_), _) => lits.push(s),
                 }
             }
 
             if let Some((reg, scalars)) = current_vec {
-                vecs.push((HLSLVector::new(&scalars).unwrap(), reg.toplevel_kind()))
+                vecs.push((HLSLVector::new(&(scalars.iter().map(|(x, _)| x.clone()).collect::<Vec<_>>())).unwrap(), reg.toplevel_kind()))
             }
             Some(
                 (out, lits, vecs)
@@ -75,13 +76,12 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
         println!("{} depends on {}; {}", 
             DWrap((out, HLSLKindBitmask::all().into())),
             DisplayVec::Sep { vec: &(vecs.iter().map(|v| DWrap(v)).collect()), sep: ", " },
-            DisplayVec::Sep { vec: &(lits.into_iter().map(|l| DWrap((l, HLSLKindBitmask::all().into()))).collect()), sep: ", "}
+            DisplayVec::Sep { vec: &(lits.into_iter().map(|l| DWrap(l))).collect(), sep: ", "}
         )
     }
 
     println!("PROGRAM TEXT BEGIN");
-    let program_hlsl_text = disassemble(&program_compat);
-    for a in program_hlsl_text {
+    for a in program_compat.actions {
         println!("{}", a);
     }
 }
