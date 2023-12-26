@@ -2,7 +2,7 @@ use std::{collections::{HashSet, HashMap}, thread::current, panic::PanicInfo};
 
 use turnip_gfx_disasm::{
     abstract_machine::{analysis::{dependency::ScalarDependencies, variable::disassemble}, VMName, display::DisplayVec, vector::VectorOf},
-    amdil_text::{AMDILDecodeError, AMDILDecoder, AMDILProgram},
+    amdil_text::{AMDILError, AMDILDecoder, AMDILProgram},
     // rdna2::{vm::RDNA2DataRef, RDNA2DecodeError, RDNA2Decoder, RDNA2Program},
     Decoder, Program, hlsl::{compat::{HLSLCompatibleAbstractVM, program_to_hlsl}, display::DWrap, kinds::{HLSLKindBitmask, HLSLKind}, HLSLScalar, HLSLVector, vm::HLSLAbstractVM}
 };
@@ -86,7 +86,7 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
     }
 }
 
-pub fn disassemble_amdil_text(amdil_text: &[u8]) -> Result<AMDILProgram, AMDILDecodeError> {
+pub fn disassemble_amdil_text(amdil_text: &[u8]) -> Result<AMDILProgram, AMDILError> {
     let amdil_text = std::str::from_utf8(amdil_text).expect("text was invalid utf8");
     AMDILDecoder::new().decode(amdil_text)
 }
