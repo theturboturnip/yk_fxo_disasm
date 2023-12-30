@@ -50,13 +50,19 @@ fn main() {
     //     print_output_depedencies(&frag_program);
     // } else {
         println!("Vertex Program");
-        let vert_program = compile_dxbc_to_amdil_text(&dll, gsvs.dxbc, disassemble_amdil_text)
+        let vert_program = compile_dxbc_to_amdil_text(&dll, gsvs.dxbc, |amdil_text| {
+            println!("{}", std::str::from_utf8(&amdil_text).unwrap());
+            disassemble_amdil_text(amdil_text)
+        })
             .expect("couldn't compile vertex shader")
             .expect("couldn't disassemble vertex shader");
         print_output_depedencies(&vert_program);
 
         println!("\n\nFragment Program");
-        let frag_program = compile_dxbc_to_amdil_text(&dll, gsps.dxbc, disassemble_amdil_text)
+        let frag_program = compile_dxbc_to_amdil_text(&dll, gsps.dxbc, |amdil_text| {
+            println!("{}", std::str::from_utf8(&amdil_text).unwrap());
+            disassemble_amdil_text(amdil_text)
+        })
             .expect("couldn't compile frag shader")
             .expect("couldn't disassemble frag shader");
         print_output_depedencies(&frag_program);

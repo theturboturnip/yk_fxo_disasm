@@ -15,18 +15,6 @@ pub fn compile_dxbc_to_rdna2<'a, T, F: Fn(&[u8]) -> T>(
         vec![],
         |elf| {
             let obj_file = object::File::parse(elf).expect("invalid ELF produced by atidxx64.dll");
-            println!(
-                "{}",
-                String::from_utf8(
-                    obj_file
-                        .section_by_name(".amdil_disassembly")
-                        .unwrap()
-                        .data()
-                        .unwrap()
-                        .to_vec()
-                )
-                .unwrap()
-            );
             let section = obj_file.section_by_name(".text").expect("no text section");
             callback(section.data().expect(".text has no data"))
         },
@@ -45,18 +33,6 @@ pub fn compile_dxbc_to_amdil_text<'a, T, F: Fn(&[u8]) -> T>(
         vec![],
         |elf| {
             let obj_file = object::File::parse(elf).expect("invalid ELF produced by atidxx64.dll");
-            println!(
-                "{}",
-                String::from_utf8(
-                    obj_file
-                        .section_by_name(".amdil_disassembly")
-                        .unwrap()
-                        .data()
-                        .unwrap()
-                        .to_vec()
-                )
-                .unwrap()
-            );
             let section = obj_file
                 .section_by_name(".amdil_disassembly")
                 .expect("no amdil_disassembly section");
