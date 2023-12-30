@@ -65,8 +65,6 @@ fn main() {
             }
         });
 
-    let mut report = std::fs::File::create(args.report_path).expect("couldn't open report file");
-
     let mut successes = vec![];
     let mut failures: HashMap<String, Vec<String>> = HashMap::new();
 
@@ -103,6 +101,7 @@ fn main() {
         }
     }
 
+    let mut report = std::fs::File::create(args.report_path).expect("couldn't open report file");
     report.write_fmt(format_args!("\n\nSUMMARY\nSuccesses: {}\n\n", successes.len())).unwrap();
     for file_name in successes {
         report.write_fmt(format_args!("{file_name}\n")).unwrap();
