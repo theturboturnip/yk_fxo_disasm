@@ -43,14 +43,13 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
                                 current_vec = Some((reg, vec![s.clone()]))
                             }
                             Some((other_reg, other_scalars)) if reg != *other_reg => {
-                                let kind = other_scalars[0].2;
                                 vecs.push(
                                     HLSLVector::of_scalars(
                                         other_scalars
                                             .iter()
+                                            // TODO could do something to preserve kind information - Op::Assign with a different output_kind?
                                             .map(|(reg, comp, _)| HLSLScalar::Component(reg.clone(), *comp))
                                             .collect(),
-                                        kind
                                     )
                                 );
                                 current_vec = Some((reg, vec![s.clone()]))
@@ -69,8 +68,7 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
                         scalars
                             .iter()
                             .map(|(reg, comp, _)| HLSLScalar::Component(reg.clone(), *comp))
-                            .collect(),
-                        reg.output_kind()
+                            .collect()
                     )
                 );
             }
