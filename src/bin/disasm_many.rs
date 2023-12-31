@@ -108,6 +108,8 @@ fn main() {
         report.write_fmt(format_args!("{file_name}\n")).unwrap();
     }
     report.write_fmt(format_args!("\nFailures ({} unique):\n", failures.len())).unwrap();
+    let mut failures = failures.into_iter().collect::<Vec<_>>();
+    failures.sort_by_cached_key(|(err_msg, _file_names)| err_msg.chars().rev().collect::<String>());
     for (err_msg, file_names) in failures {
         report.write_fmt(format_args!("\n{err_msg}\n")).unwrap();
         for file_name in file_names {
