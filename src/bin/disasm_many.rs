@@ -67,8 +67,10 @@ fn main() {
 
     let mut successes = vec![];
     let mut failures: HashMap<String, Vec<String>> = HashMap::new();
+    let mut total_files = 0;
 
     for file in fxos {
+        total_files += 1;
         let file_path = file.path();
         let file_name = file.file_name().to_str().unwrap().to_owned();
         let res = std::panic::catch_unwind(|| {
@@ -102,7 +104,7 @@ fn main() {
     }
 
     let mut report = std::fs::File::create(args.report_path).expect("couldn't open report file");
-    report.write_fmt(format_args!("\n\nSUMMARY\nSuccesses: {}\n\n", successes.len())).unwrap();
+    report.write_fmt(format_args!("\n\nSUMMARY\nSuccesses: {} out of {}\n\n", successes.len(), total_files)).unwrap();
     for file_name in successes {
         report.write_fmt(format_args!("{file_name}\n")).unwrap();
     }
