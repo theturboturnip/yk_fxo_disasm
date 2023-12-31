@@ -33,16 +33,15 @@ fn read_fxo(dll: &Atidxx64, fxo_path: std::path::PathBuf) {
 
     let (_, (gsvs, gsps)) = parse_gsfx(&fxo).expect("couldn't parse fxo file");
 
-    compile_dxbc_to_amdil_text(dll, gsvs.dxbc, disassemble_amdil_text)
+    let vert_program = compile_dxbc_to_amdil_text(dll, gsvs.dxbc, disassemble_amdil_text)
         .expect("couldn't compile vertex shader")
         .expect("couldn't disassemble vertex shader");
-    // print_output_depedencies(&vert_program);
-
-    // println!("\n\nFragment Program");
-    compile_dxbc_to_amdil_text(dll, gsps.dxbc, disassemble_amdil_text)
+    let frag_program = compile_dxbc_to_amdil_text(dll, gsps.dxbc, disassemble_amdil_text)
         .expect("couldn't compile frag shader")
         .expect("couldn't disassemble frag shader");
-    // print_output_depedencies(&frag_program);
+
+    print_output_depedencies(&vert_program);
+    print_output_depedencies(&frag_program);
 }
 
 fn main() {
