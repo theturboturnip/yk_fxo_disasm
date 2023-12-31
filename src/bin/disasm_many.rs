@@ -106,7 +106,7 @@ fn main() {
     for file_name in successes {
         report.write_fmt(format_args!("{file_name}\n")).unwrap();
     }
-    report.write_fmt(format_args!("\nFailures:\n")).unwrap();
+    report.write_fmt(format_args!("\nFailures ({} unique):\n", failures.len())).unwrap();
     for (err_msg, file_names) in failures {
         report.write_fmt(format_args!("\n{err_msg}\n")).unwrap();
         for file_name in file_names {
