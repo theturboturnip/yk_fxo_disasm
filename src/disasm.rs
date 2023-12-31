@@ -83,7 +83,7 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
 
     for (out, vecs) in out_deps {
         println!("{} depends on {}", 
-            DWrap(&(HLSLScalar::Component(out.0.clone(), out.1), HLSLKindBitmask::all().into())),
+            DWrap(&(HLSLScalar::Component(out.0.clone(), out.1), HLSLKind::ALL)),
             DisplayVec::Sep { vec: &(vecs.iter().map(|v| DWrap((v, v.output_kind()))).collect()), sep: ", " },
             // DisplayVec::Sep { vec: &(lits.into_iter().map(|l| DWrap(l))).collect(), sep: ", "}
         )
