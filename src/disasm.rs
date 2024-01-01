@@ -25,7 +25,7 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
     }
 
     for dependent in resolver.discard_dependencies {
-        println!("discard depends on {}", DWrap(&(HLSLScalar::Component(dependent.0, dependent.1), dependent.2)))
+        println!("discard depends on {:?}", dependent)
     }
 
     let mut out_deps: Vec<_> = resolver.dependents.iter().filter_map(|(out, deps)| {
@@ -35,41 +35,27 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
             let mut vecs = vec![];
             let mut current_vec = None;
 
-            for s in v {
-                match s {
-                    (reg, _, _) => {
-                        match &mut current_vec {
-                            None => {
-                                current_vec = Some((reg, vec![s.clone()]))
-                            }
-                            Some((other_reg, other_scalars)) if reg != *other_reg => {
-                                vecs.push(
-                                    HLSLVector::of_scalars(
-                                        other_scalars
-                                            .iter()
-                                            // TODO could do something to preserve kind information - Op::Assign with a different output_kind?
-                                            .map(|(reg, comp, _)| HLSLScalar::Component(reg.clone(), *comp))
-                                            .collect(),
-                                    )
-                                );
-                                current_vec = Some((reg, vec![s.clone()]))
-                            }
-                            Some((_this_reg, sibling_scalars)) => {
-                                sibling_scalars.push(s.clone())
-                            }
-                        }
-                    },
+            for (written_reg, written_comp, written_kind) in v {
+                current_vec = match current_vec {
+                    None => {
+                        Some((written_reg.clone(), vec![*written_comp]))
+                    }
+                    Some((other_reg, other_scalars)) if *written_reg != other_reg => {
+                        vecs.push(
+                            (other_reg, other_scalars)
+                        );
+                        Some((written_reg.clone(), vec![*written_comp]))
+                    }
+                    Some((this_reg, mut sibling_scalars)) => {
+                        sibling_scalars.push(*written_comp);
+                        Some((this_reg, sibling_scalars))
+                    }
                 }
             }
 
             if let Some((reg, scalars)) = current_vec {
                 vecs.push(
-                    HLSLVector::of_scalars(
-                        scalars
-                            .iter()
-                            .map(|(reg, comp, _)| HLSLScalar::Component(reg.clone(), *comp))
-                            .collect()
-                    )
+                    (reg, scalars)
                 );
             }
             Some(
@@ -82,9 +68,10 @@ pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Prog
     out_deps.sort_by(|(out1, ..), (out2, ..)| out1.partial_cmp(out2).unwrap());
 
     for (out, vecs) in out_deps {
-        println!("{} depends on {}", 
-            DWrap(&(HLSLScalar::Component(out.0.clone(), out.1), HLSLKind::ALL)),
-            DisplayVec::Sep { vec: &(vecs.iter().map(|v| DWrap((v, v.output_kind()))).collect()), sep: ", " },
+        println!("{:?}.{} depends on {:?}", 
+            out.0, out.1,
+            vecs
+            // DisplayVec::Sep { vec: &(vecs.iter().map(|v| DWrap((v, v.output_kind()))).collect()), sep: ", " },
             // DisplayVec::Sep { vec: &(lits.into_iter().map(|l| DWrap(l))).collect(), sep: ", "}
         )
     }
