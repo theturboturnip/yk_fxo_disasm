@@ -10,6 +10,15 @@ use turnip_gfx_disasm::{
 // pub fn disassemble_rdna2(rdna2: &[u8]) -> Result<RDNA2Program, RDNA2DecodeError> {
 //     RDNA2Decoder::new().decode(rdna2)
 // }
+pub fn analyze_program<T: HLSLCompatibleAbstractVM>(program: &impl Program<T>) {
+    let disassembled = disassemble(&program_to_hlsl::<T, _>(program));
+
+    let mut scalar_deps = ScalarDependencies::<HLSLAbstractVM>::new();
+    let empty_ctrl_flow = HashSet::new();
+    for action in disassembled.actions() {
+        scalar_deps.accum_action(action, &empty_ctrl_flow);
+    }
+}
 
 pub fn print_output_depedencies<T: HLSLCompatibleAbstractVM>(program: &impl Program<T>) {
     let program_compat = disassemble(&program_to_hlsl::<T, _>(program));

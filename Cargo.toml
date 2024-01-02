@@ -11,3 +11,6 @@ amd_dx_gsa = { path = "../amd_dx_gsa" }
 nom = "7.1.1"
 object = "0.29.0"
 clap = { version = "3.2.21", features = ["derive"] }
+rusqlite = { version = "0.30.0", features = ["bundled"] }
+anyhow = "1.0.79"
+ring = "0.17.7"

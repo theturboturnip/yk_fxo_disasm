@@ -3,6 +3,7 @@ use std::path::PathBuf;
 mod compile;
 mod disasm;
 mod yk;
+mod db;
 
 use amd_dx_gsa::Atidxx64;
 use clap::Parser;

@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use amd_dx_gsa::Atidxx64;
 use clap::Parser;
-use yk_fxo_disasm::disasm::print_output_depedencies;
+use yk_fxo_disasm::disasm::{print_output_depedencies, analyze_program};
 use yk_fxo_disasm::yk::parse_gsfx;
 
 use yk_fxo_disasm::{
@@ -40,8 +40,8 @@ fn read_fxo(dll: &Atidxx64, fxo_path: std::path::PathBuf) {
         .expect("couldn't compile frag shader")
         .expect("couldn't disassemble frag shader");
 
-    print_output_depedencies(&vert_program);
-    print_output_depedencies(&frag_program);
+    analyze_program(&vert_program);
+    analyze_program(&frag_program);
 }
 
 fn main() {

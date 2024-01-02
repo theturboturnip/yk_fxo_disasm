@@ -3,7 +3,7 @@ use amd_dx_gsa::{
 };
 use object::{Object, ObjectSection};
 
-pub fn compile_dxbc_to_rdna2<'a, T, F: Fn(&[u8]) -> T>(
+pub fn compile_dxbc_to_rdna2<'a, T, F: FnOnce(&[u8]) -> T>(
     dll: &Atidxx64,
     dxbc: &'a [u8],
     callback: F,
@@ -21,9 +21,9 @@ pub fn compile_dxbc_to_rdna2<'a, T, F: Fn(&[u8]) -> T>(
     )
 }
 
-pub fn compile_dxbc_to_amdil_text<'a, T, F: Fn(&[u8]) -> T>(
-    dll: &Atidxx64,
-    dxbc: &'a [u8],
+pub fn compile_dxbc_to_amdil_text<'dll: 'dxbc, 'dxbc: 'amdil, 'amdil, T: 'dll, F: FnOnce(&'amdil [u8]) -> T>(
+    dll: &'dll Atidxx64,
+    dxbc: &'dxbc [u8],
     callback: F,
 ) -> Result<T, ShaderCompileError> {
     let (_, bytecode) = get_shader_bytecode(dxbc).expect("couldn't extract bytecode from DXBC");
